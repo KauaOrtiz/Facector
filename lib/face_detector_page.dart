@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
 import 'camera_view.dart';
+import 'detector_view.dart';
 
 class FaceDetectorPage extends StatefulWidget {
   const FaceDetectorPage({Key? key}) : super(key: key);
@@ -27,6 +28,7 @@ class _FaceDetectorPageState extends State<FaceDetectorPage> {
   bool _isBusy = false;
   CustomPaint? _customPaint;
   String? _text;
+  var _cameraLensDirection = CameraLensDirection.front;
 
   @override
   void dispose() {
@@ -37,14 +39,13 @@ class _FaceDetectorPageState extends State<FaceDetectorPage> {
 
   @override
   Widget build(BuildContext context) {
-    return CameraView(
+    return DetectorView(
       title: 'Face Detector',
       customPaint: _customPaint,
       text: _text,
-      onImage: (inputImage) {
-        processImage(inputImage);
-      },
-      initialDirection: CameraLensDirection.front,
+      onImage: processImage,
+      initialCameraLensDirection: _cameraLensDirection,
+      onCameraLensDirectionChanged: (value) => _cameraLensDirection = value,
     );
   }
 
@@ -53,22 +54,25 @@ class _FaceDetectorPageState extends State<FaceDetectorPage> {
     if (_isBusy) return;
     _isBusy = true;
     setState(() {
-      _text = "";
+      _text = '';
     });
     final faces = await _faceDetector.processImage(inputImage);
-    if (inputImage.inputImageData?.size != null &&
-        inputImage.inputImageData?.imageRotation != null) {
+    if (inputImage.metadata?.size != null &&
+        inputImage.metadata?.rotation != null) {
       final painter = FaceDetectorPainter(
-          faces,
-          inputImage.inputImageData!.size,
-          inputImage.inputImageData!.imageRotation);
+        faces,
+        inputImage.metadata!.size,
+        inputImage.metadata!.rotation,
+        _cameraLensDirection,
+      );
       _customPaint = CustomPaint(painter: painter);
     } else {
-      String text = 'face found ${faces.length}\n\n';
+      String text = 'Faces found: ${faces.length}\n\n';
       for (final face in faces) {
-        text += 'face ${face.boundingBox}\n\n';
+        text += 'face: ${face.boundingBox}\n\n';
       }
       _text = text;
+      // TODO: set _customPaint to draw boundingRect on top of image
       _customPaint = null;
     }
     _isBusy = false;

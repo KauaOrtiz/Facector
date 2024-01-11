@@ -1,4 +1,5 @@
 
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
@@ -8,8 +9,9 @@ class FaceDetectorPainter extends CustomPainter {
   final List<Face> faces;
   final Size absoluteImageSize;
   final InputImageRotation rotation;
+  final CameraLensDirection cameraLensDirection;
 
-  FaceDetectorPainter(this.faces, this.absoluteImageSize, this.rotation);
+  FaceDetectorPainter(this.faces, this.absoluteImageSize, this.rotation, this.cameraLensDirection);
 
   @override
   void paint(final Canvas canvas, final Size size) {
